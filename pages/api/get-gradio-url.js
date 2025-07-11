@@ -3,16 +3,20 @@ export default async function handler(req, res) {
         return res.status(405).end(); // Method Not Allowed
     }
 
-    // TODO: Add your actual auth/session logic here
-    const isAuthenticated = true; // Replace with real logic (cookie, session, etc.)
+    // TODO: Replace with real session check (e.g., JWT, cookie, or auth header)
+    const isAuthenticated = true; // ← insert real logic here
 
-    if (isAuthenticated) {
-        // Never expose this token in client-side JS
-        const gradioToken = '3v80mdr2k3rjig98bv9mcotf89';
-        const gradioURL = `https://huggingface.co/spaces/HeetSavaliya/Final_App/?access=${gradioToken}`;
-
-        res.status(200).json({ url: gradioURL });
-    } else {
-        res.status(401).json({ error: 'Unauthorized' });
+    if (!isAuthenticated) {
+        return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    // ✅ Read from environment variable (NEVER hardcode tokens!)
+    const gradioToken = process.env.ACCESS_TOKEN;
+    const gradioURL = `https://huggingface.co/spaces/HeetSavaliya/Final_App/?access=${gradioToken}`;
+
+    if (!gradioToken) {
+        return res.status(500).json({ error: 'Missing Gradio token on server' });
+    }
+
+    return res.status(200).json({ url: gradioURL });
 }
