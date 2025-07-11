@@ -7,16 +7,19 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+
   const { email, password } = req.body;
 
-  const { data, error } = await supabase.auth.admin.createUserToken({
-    email,
-    password,
-    type: 'service_role'
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) return res.status(401).json({ error: error.message });
+  if (error) {
+    return res.status(401).json({ error: error.message });
+  }
 
-  res.setHeader('Set-Cookie', `supabase_token=${data.access_token}; HttpOnly; Path=/`);
+  res.setHeader(
+    'Set-Cookie',
+    `logged_in=true; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`
+  );
+
   res.status(200).json({ success: true });
 }
